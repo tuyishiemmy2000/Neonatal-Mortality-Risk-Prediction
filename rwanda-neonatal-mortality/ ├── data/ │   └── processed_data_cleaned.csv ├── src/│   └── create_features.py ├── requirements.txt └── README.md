@@ -1,10 +1,2 @@
 
-__pycache__/
-.ipynb_checkpoints/
-.venv/
-.env
-data/*.csv
-*.pkl
-*.joblib
-.DS_Store
-Thumbs.db
+
