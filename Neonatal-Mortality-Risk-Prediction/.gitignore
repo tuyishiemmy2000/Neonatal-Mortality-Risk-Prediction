@@ -1,0 +1,16 @@
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+.env
+.DS_Store
+Thumbs.db
+
+# DHS data must not be shared publicly
+data/*.csv
+data/*.dta
+*.dta
+*.xlsx
+
+# trained models
+*.pkl
+*.joblib
