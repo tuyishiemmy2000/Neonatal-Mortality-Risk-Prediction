@@ -91,3 +91,26 @@ for name, model in [
 print("\\nFINAL MODEL COMPARISON")
 comparison = pd.DataFrame(results)
 print(comparison.round(3).to_string(index=False))
+
+
+# FEATURE IMPORTANCE AND MODEL INTERPRETATION
+
+import pandas as pd
+
+rf_importance = pd.Series(
+    rf.feature_importances_,
+    index=FEATURES,
+    name="Random Forest Importance"
+).sort_values(ascending=False)
+
+print("RANDOM FOREST FEATURE IMPORTANCE")
+print(rf_importance)
+
+logit_coefficients = pd.Series(
+    logit.named_steps["logisticregression"].coef_[0],
+    index=FEATURES,
+    name="Logistic Regression Coefficient"
+).sort_values(ascending=False)
+
+print("\nLOGISTIC REGRESSION COEFFICIENTS")
+print(logit_coefficients)
