@@ -21,7 +21,7 @@ st.set_page_config(
 )
 
 # This is the OUTER folder containing your existing outputs folder.
-ROOT = Path(
+ROOT = Path(__file__).resolve().parents[1]
     r"C:\Users\user\Downloads\Neonatal-Mortality-Risk-Prediction-main (3)\Neonatal-Mortality-Risk-Prediction-main"
 )
 
