@@ -133,9 +133,31 @@ try:
     national = load_csv(str(NATIONAL_PATH))
     pregnancy_districts = load_csv(str(PREGNANCY_DISTRICT_PATH))
     delivery_districts = load_csv(str(DELIVERY_DISTRICT_PATH))
-except Exception as exc:
-    st.error(f"Could not load one of the saved files: {exc}")
+
+except Exception as e:
+    st.error(f"Could not load required project files: {e}")
     st.stop()
+
+# District mapping goes AFTER the try/except block
+district_names = sorted(
+    set(pregnancy_districts["District"].dropna().astype(str))
+    | set(delivery_districts["District"].dropna().astype(str))
+)
+
+district_to_code = {
+    name: code for code, name in enumerate(district_names)
+}
+    # District names for user-friendly dropdowns.
+# cat.codes assigns codes in alphabetical category order.
+district_names = sorted(
+    set(pregnancy_districts["District"].dropna().astype(str))
+    | set(delivery_districts["District"].dropna().astype(str))
+)
+
+district_to_code = {
+    name: code for code, name in enumerate(district_names)
+}
+
 
 
 # Validate the expected feature names when the model exposes them.
@@ -304,20 +326,20 @@ if page == "National overview":
 
 
 # ============================================================
+# 
+# ============================================================
 # 6. PREGNANCY-STAGE INDIVIDUAL PREDICTION
 # ============================================================
 
 elif page == "Pregnancy prediction":
 
     st.header("Pregnancy-stage risk assessment")
-
     st.write(
-        "Enter information available during pregnancy. Use the same "
-        "numeric coding and units used to prepare the training dataset."
+        "Enter information available during pregnancy. "
+        "Choose descriptive answers instead of numeric codes."
     )
 
     with st.form("pregnancy_form"):
-
         col1, col2 = st.columns(2)
 
         with col1:
@@ -331,38 +353,70 @@ elif page == "Pregnancy prediction":
                 "ANC visits recorded", 0, 20, 4
             )
             first_anc_month = st.number_input(
-                "Month of first ANC visit", 0, 10, 4
+                "Month of first ANC visit", 1, 10, 4
             )
             minutes_to_facility = st.number_input(
-                "Travel time to facility (minutes)", 0, 1000, 30
+                "Travel time to facility (minutes)",
+                0, 1000, 30
             )
-            walks_to_facility = st.selectbox(
-                "walks_to_facility numeric code", [0, 1]
+
+            walks_label = st.selectbox(
+                "Does the mother walk to the health facility?",
+                ["No", "Yes"]
             )
+            walks_to_facility = {"No": 0, "Yes": 1}[walks_label]
 
         with col2:
-            is_urban = st.selectbox("is_urban numeric code", [0, 1])
-            prev_caesarean = st.selectbox(
-                "prev_caesarean numeric code", [0, 1]
+            residence_label = st.selectbox(
+                "Place of residence",
+                ["Rural", "Urban"]
             )
-            smokes = st.selectbox("smokes numeric code", [0, 1])
-            wealth = st.selectbox(
-                "Wealth quintile code", [1, 2, 3, 4, 5]
+            is_urban = {"Rural": 0, "Urban": 1}[residence_label]
+
+            prev_label = st.selectbox(
+                "Previous caesarean section",
+                ["No", "Yes"]
             )
-            mother_edu = st.selectbox(
-                "Education code", [0, 1, 2, 3]
+            prev_caesarean = {"No": 0, "Yes": 1}[prev_label]
+
+            smoke_label = st.selectbox(
+                "Does the mother smoke cigarettes?",
+                ["No", "Yes"]
             )
-            district_code = st.number_input(
-                "District code used in training",
-                min_value=0,
-                max_value=10000,
-                value=1,
+            smokes = {"No": 0, "Yes": 1}[smoke_label]
+
+            wealth_label = st.selectbox(
+                "Household wealth quintile",
+                ["Poorest", "Poorer", "Middle", "Richer", "Richest"]
             )
+            wealth = {
+                "Poorest": 1,
+                "Poorer": 2,
+                "Middle": 3,
+                "Richer": 4,
+                "Richest": 5,
+            }[wealth_label]
+
+            education_label = st.selectbox(
+                "Mother's highest education level",
+                ["No education", "Primary", "Secondary", "Higher"]
+            )
+            mother_edu = {
+                "No education": 0,
+                "Primary": 1,
+                "Secondary": 2,
+                "Higher": 3,
+            }[education_label]
+
+            selected_district = st.selectbox(
+                "District",
+                district_names
+            )
+            district_code = district_to_code[selected_district]
 
         st.caption(
-            "For coded fields, 0 and 1 are raw model input values, not "
-            "guaranteed labels for No/Yes. Confirm their meanings in "
-            "build_features.py. Enter the original training district code."
+            "The descriptive choices are converted to numeric model "
+            "inputs. District codes must match the training mapping."
         )
 
         submitted = st.form_submit_button(
@@ -389,7 +443,6 @@ elif page == "Pregnancy prediction":
         probability = float(
             pregnancy_model.predict_proba(row)[0, 1]
         )
-
         flagged = probability >= pregnancy_threshold
 
         st.subheader("Prediction result")
@@ -404,15 +457,17 @@ elif page == "Pregnancy prediction":
             )
         else:
             st.info(
-                "The estimate is below the model's selected "
-                "flagging threshold. This does not guarantee a safe outcome."
+                "The estimate is below the model's selected threshold. "
+                "This does not guarantee a safe outcome."
             )
 
         st.caption(
-            "This is a model estimate, not a validated clinical risk "
-            "category. Do not use it alone to make care or referral decisions."
+            "Research estimate only. It is not a diagnosis or a "
+            "validated clinical risk category. Do not use it alone "
+            "to make care or referral decisions."
         )
 
+# ============================================================
 
 # ============================================================
 # 7. DELIVERY-STAGE INDIVIDUAL PREDICTION
@@ -421,14 +476,12 @@ elif page == "Pregnancy prediction":
 elif page == "Delivery prediction":
 
     st.header("Delivery-stage risk assessment")
-
     st.write(
-        "Enter maternal information plus delivery and newborn information. "
-        "Use the same numeric codes and units as the training data."
+        "Enter maternal information and information available "
+        "at delivery or after the newborn's birth."
     )
 
     with st.form("delivery_form"):
-
         col1, col2 = st.columns(2)
 
         with col1:
@@ -442,10 +495,11 @@ elif page == "Delivery prediction":
                 "ANC visits recorded", 0, 20, 4, key="d_anc"
             )
             first_anc_month = st.number_input(
-                "Month of first ANC visit", 0, 10, 4, key="d_firstanc"
+                "Month of first ANC visit", 1, 10, 4,
+                key="d_firstanc"
             )
             birth_weight = st.number_input(
-                "Birth weight (confirm unit used in training)",
+                "Birth weight (confirm training-data unit)",
                 min_value=0.0,
                 max_value=10000.0,
                 value=3000.0,
@@ -455,46 +509,92 @@ elif page == "Delivery prediction":
                 "Travel time to facility (minutes)",
                 0, 1000, 30, key="d_travel"
             )
-            is_male = st.selectbox(
-                "is_male numeric code", [0, 1]
+
+            sex_label = st.selectbox(
+                "Sex of newborn",
+                ["Female", "Male"]
             )
-            is_urban = st.selectbox(
-                "is_urban numeric code", [0, 1], key="d_urban"
+            is_male = {"Female": 0, "Male": 1}[sex_label]
+
+            residence_label = st.selectbox(
+                "Place of residence",
+                ["Rural", "Urban"], key="d_residence"
             )
+            is_urban = {"Rural": 0, "Urban": 1}[residence_label]
+
+            walks_label = st.selectbox(
+                "Does the mother walk to the health facility?",
+                ["No", "Yes"], key="d_walks_label"
+            )
+            walks_to_facility = {"No": 0, "Yes": 1}[walks_label]
 
         with col2:
-            caesarean = st.selectbox(
-                "caesarean numeric code", [0, 1]
+            caesarean_label = st.selectbox(
+                "Was this delivery by caesarean section?",
+                ["No", "Yes"]
             )
-            prev_caesarean = st.selectbox(
-                "prev_caesarean numeric code", [0, 1], key="d_prev"
+            caesarean = {"No": 0, "Yes": 1}[caesarean_label]
+
+            prev_label = st.selectbox(
+                "Previous caesarean section",
+                ["No", "Yes"], key="d_prev_label"
             )
-            smokes = st.selectbox(
-                "smokes numeric code", [0, 1], key="d_smokes"
+            prev_caesarean = {"No": 0, "Yes": 1}[prev_label]
+
+            smoke_label = st.selectbox(
+                "Does the mother smoke cigarettes?",
+                ["No", "Yes"], key="d_smoke_label"
             )
-            facility_delivery = st.selectbox(
-                "facility_delivery numeric code", [0, 1]
+            smokes = {"No": 0, "Yes": 1}[smoke_label]
+
+            delivery_place_label = st.selectbox(
+                "Place of delivery",
+                [
+                    "Health facility",
+                    "Respondent's home or other home",
+                ]
             )
-            walks_to_facility = st.selectbox(
-                "walks_to_facility numeric code", [0, 1], key="d_walks"
+            facility_delivery = {
+                "Health facility": 1,
+                "Respondent's home or other home": 0,
+            }[delivery_place_label]
+
+            wealth_label = st.selectbox(
+                "Household wealth quintile",
+                ["Poorest", "Poorer", "Middle", "Richer", "Richest"],
+                key="d_wealth_label"
             )
-            wealth = st.selectbox(
-                "Wealth quintile code", [1, 2, 3, 4, 5], key="d_wealth"
+            wealth = {
+                "Poorest": 1,
+                "Poorer": 2,
+                "Middle": 3,
+                "Richer": 4,
+                "Richest": 5,
+            }[wealth_label]
+
+            education_label = st.selectbox(
+                "Mother's highest education level",
+                ["No education", "Primary", "Secondary", "Higher"],
+                key="d_education_label"
             )
-            mother_edu = st.selectbox(
-                "Education code", [0, 1, 2, 3], key="d_edu"
+            mother_edu = {
+                "No education": 0,
+                "Primary": 1,
+                "Secondary": 2,
+                "Higher": 3,
+            }[education_label]
+
+            selected_district = st.selectbox(
+                "District",
+                district_names,
+                key="d_district_name"
             )
-            district_code = st.number_input(
-                "District code used in training",
-                min_value=0,
-                max_value=10000,
-                value=1,
-                key="d_district",
-            )
+            district_code = district_to_code[selected_district]
 
         st.caption(
-            "Confirm binary codes, education, wealth, birth-weight units, "
-            "and district-code mapping against build_features.py."
+            "Descriptive choices are converted to numeric model inputs. "
+            "Confirm birth-weight units and district-code mapping against "
+            "the training pipeline."
         )
 
         submitted = st.form_submit_button(
@@ -525,7 +625,6 @@ elif page == "Delivery prediction":
         probability = float(
             delivery_model.predict_proba(row)[0, 1]
         )
-
         flagged = probability >= delivery_threshold
 
         st.subheader("Prediction result")
@@ -540,16 +639,15 @@ elif page == "Delivery prediction":
             )
         else:
             st.info(
-                "The estimate is below the model's selected flagging "
-                "threshold. This does not guarantee a safe outcome."
+                "The estimate is below the model's selected threshold. "
+                "This does not guarantee a safe outcome."
             )
 
         st.caption(
-            "This estimate is not a diagnosis and should not replace "
-            "clinical assessment, newborn examination, or established "
-            "referral protocols."
+            "Research estimate only. It is not a diagnosis and must "
+            "not replace clinical assessment, newborn examination, "
+            "or established referral protocols."
         )
-
 
 # ============================================================
 # 8. DISTRICT ANALYSIS
