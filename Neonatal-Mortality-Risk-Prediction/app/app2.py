@@ -20,10 +20,8 @@ st.set_page_config(
     layout="wide",
 )
 
-# This is the OUTER folder containing your existing outputs folder.
+## Locate the project folder containing your outputs folder.
 ROOT = Path(__file__).resolve().parents[1]
-    r"C:\Users\user\Downloads\Neonatal-Mortality-Risk-Prediction-main (3)\Neonatal-Mortality-Risk-Prediction-main"
-)
 
 OUTPUTS = ROOT / "outputs"
 MODELS = OUTPUTS / "models"
@@ -35,7 +33,6 @@ NATIONAL_PATH = OUTPUTS / "national_risk_summary.csv"
 PREGNANCY_DISTRICT_PATH = OUTPUTS / "pregnancy_district_risk.csv"
 DELIVERY_DISTRICT_PATH = OUTPUTS / "delivery_district_risk.csv"
 DISTRICT_PATH = OUTPUTS / "district_risk.csv"
-
 
 # ============================================================
 # 2. MODEL FEATURES
