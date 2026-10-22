@@ -94,16 +94,49 @@ def load_thresholds(path_string):
         return json.load(f)
 
 
+
 st.title("Rwanda Neonatal Mortality Risk Dashboard")
-st.caption(
-    "Exploratory analysis of neonatal mortality and model-estimated risk"
+
+
+# ============================================================
+# MACHINE LEARNING MODEL USED
+# ============================================================
+
+st.header("Machine Learning Method")
+
+st.info(
+    "This dashboard uses the Random Forest Classifier "
+    "for neonatal mortality risk prediction. Logistic Regression "
+    "is not used in the current implementation."
 )
 
-st.warning(
-    "Research prototype only. These models have not been established as "
-    "safe for clinical decision-making. A prediction is not a diagnosis "
-    "and must not replace clinical assessment or referral protocols."
-)
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.subheader("Pregnancy Assessment")
+    st.write("**Algorithm:** Random Forest")
+    st.caption(
+        "Uses information available during pregnancy "
+        "to estimate neonatal mortality risk."
+    )
+
+with col2:
+    st.subheader("Delivery Assessment")
+    st.write("**Algorithm:** Random Forest")
+    st.caption(
+        "Uses the available delivery-stage predictors "
+        "to estimate neonatal mortality risk."
+    )
+
+with col3:
+    st.subheader("District Risk Analysis")
+    st.write("**Algorithm:** Random Forest")
+    st.caption(
+        "District risk estimates should be generated "
+        "from Random Forest predictions."
+    )
+
+st.divider()
 
 required_files = [
     PREGNANCY_MODEL_PATH,
