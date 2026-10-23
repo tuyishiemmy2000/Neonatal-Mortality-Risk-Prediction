@@ -246,23 +246,6 @@ pregnancy_threshold = float(thresholds["pregnancy"])
 delivery_threshold = float(thresholds["delivery"])
 
 
-# ============================================================
-# 4. SIDEBAR NAVIGATION
-# ============================================================
-
-page = st.sidebar.radio(
-    "Navigate dashboard",
-    [
-        "National overview",
-        "Pregnancy prediction",
-        "Delivery prediction",
-        "District analysis",
-        "Model information",
-    ],
-)
-
-st.sidebar.divider()
-st.sidebar.caption("Rwanda neonatal mortality research prototype")
 
 
 # ============================================================
