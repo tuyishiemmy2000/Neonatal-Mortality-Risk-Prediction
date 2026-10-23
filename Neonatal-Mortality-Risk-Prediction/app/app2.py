@@ -110,6 +110,7 @@ st.info(
 # SIDEBAR NAVIGATION
 # ============================================================
 
+
 page = st.sidebar.radio(
     "Navigate dashboard",
     [
@@ -119,7 +120,9 @@ page = st.sidebar.radio(
         "District analysis",
         "Model information",
     ],
+    key="main_dashboard_navigation",
 )
+
 
 st.sidebar.divider()
 st.sidebar.caption("Rwanda neonatal mortality research prototype")
