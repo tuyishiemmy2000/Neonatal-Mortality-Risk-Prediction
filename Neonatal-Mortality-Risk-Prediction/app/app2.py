@@ -106,35 +106,54 @@ st.header("Machine Learning Method")
 
 st.info(
     "This dashboard uses the Random Forest Classifier "
-    "for neonatal mortality risk prediction. Logistic Regression "
-    "is not used in the current implementation."
+    "for neonatal mortality risk prediction."
 )
 
-col1, col2, col3 = st.columns(3)
 
-with col1:
-    st.subheader("Pregnancy Assessment")
-    st.write("**Algorithm:** Random Forest")
-    st.caption(
-        "Uses information available during pregnancy "
-        "to estimate neonatal mortality risk."
-    )
+# ============================================================
+# MACHINE LEARNING METHOD
+# ============================================================
 
-with col2:
-    st.subheader("Delivery Assessment")
-    st.write("**Algorithm:** Random Forest")
-    st.caption(
-        "Uses the available delivery-stage predictors "
-        "to estimate neonatal mortality risk."
-    )
 
-with col3:
-    st.subheader("District Risk Analysis")
-    st.write("**Algorithm:** Random Forest")
-    st.caption(
-        "District risk estimates should be generated "
-        "from Random Forest predictions."
-    )
+# 1. Pregnancy Assessment
+st.subheader("Pregnancy Assessment")
+
+st.write("**Algorithm:** Random Forest")
+
+st.write(
+    "Uses information available during pregnancy to estimate "
+    "neonatal mortality risk before delivery."
+)
+
+# 2. Delivery Assessment
+st.subheader("Delivery Assessment")
+
+st.write("**Algorithm:** Random Forest")
+
+st.write(
+    "Uses maternal, pregnancy, and delivery-stage information "
+    "to estimate neonatal mortality risk when the baby is born."
+)
+
+# 3. District Risk Analysis
+st.subheader("District Risk Analysis")
+
+st.write("**Algorithm:** Random Forest")
+
+st.write(
+    "Compares average model-estimated risk across districts "
+    "using Random Forest predictions."
+)
+
+# 4. Model Information
+st.subheader("Model Information")
+
+st.write("**Algorithm:** Random Forest Classifier")
+
+st.write(
+    "Explains model performance, selected thresholds, "
+    "feature importance, and limitations."
+)
 
 st.divider()
 
