@@ -95,12 +95,8 @@ def load_thresholds(path_string):
 
 
 
+
 st.title("Rwanda Neonatal Mortality Risk Dashboard")
-
-
-# ============================================================
-# MACHINE LEARNING MODEL USED
-# ============================================================
 
 st.header("Machine Learning Method")
 
@@ -111,51 +107,61 @@ st.info(
 
 
 # ============================================================
-# MACHINE LEARNING METHOD
+# SIDEBAR NAVIGATION
 # ============================================================
 
-
-# 1. Pregnancy Assessment
-st.subheader("Pregnancy Assessment")
-
-st.write("**Algorithm:** Random Forest")
-
-st.write(
-    "Uses information available during pregnancy to estimate "
-    "neonatal mortality risk before delivery."
+page = st.sidebar.radio(
+    "Navigate dashboard",
+    [
+        "National overview",
+        "Pregnancy prediction",
+        "Delivery prediction",
+        "District analysis",
+        "Model information",
+    ],
 )
 
-# 2. Delivery Assessment
-st.subheader("Delivery Assessment")
+st.sidebar.divider()
+st.sidebar.caption("Rwanda neonatal mortality research prototype")
 
-st.write("**Algorithm:** Random Forest")
+# ============================================================
+# DISPLAY ONLY THE RELEVANT MACHINE LEARNING SECTION
+# ============================================================
 
-st.write(
-    "Uses maternal, pregnancy, and delivery-stage information "
-    "to estimate neonatal mortality risk when the baby is born."
-)
+if page == "Pregnancy prediction":
+    st.header("Pregnancy Assessment")
+    st.write("**Algorithm:** Random Forest")
+    st.write(
+        "Uses information available during pregnancy to estimate "
+        "neonatal mortality risk before delivery."
+    )
 
-# 3. District Risk Analysis
-st.subheader("District Risk Analysis")
+elif page == "Delivery prediction":
+    st.header("Delivery Assessment")
+    st.write("**Algorithm:** Random Forest")
+    st.write(
+        "Uses maternal, pregnancy, and delivery-stage information "
+        "to estimate neonatal mortality risk when the baby is born."
+    )
 
-st.write("**Algorithm:** Random Forest")
+elif page == "District analysis":
+    st.header("District Risk Analysis")
+    st.write("**Algorithm:** Random Forest")
+    st.write(
+        "Compares average model-estimated risk across districts "
+        "using Random Forest predictions."
+    )
 
-st.write(
-    "Compares average model-estimated risk across districts "
-    "using Random Forest predictions."
-)
-
-# 4. Model Information
-st.subheader("Model Information")
-
-st.write("**Algorithm:** Random Forest Classifier")
-
-st.write(
-    "Explains model performance, selected thresholds, "
-    "feature importance, and limitations."
-)
+elif page == "Model information":
+    st.header("Model Information")
+    st.write("**Algorithm:** Random Forest Classifier")
+    st.write(
+        "Explains model performance, selected thresholds, "
+        "feature importance, and limitations."
+    )
 
 st.divider()
+
 
 required_files = [
     PREGNANCY_MODEL_PATH,
