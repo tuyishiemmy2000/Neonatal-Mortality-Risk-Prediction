@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import altair as alt
+from sklearn.inspection import permutation_importance
 
 
 # ============================================================
@@ -976,6 +977,175 @@ elif page == "District analysis":
 
                 for indicator in recommendations["indicators"]:
                     st.markdown(f"- {indicator}")
+                    
+                # ==========================================
+                # DISTRICT-SPECIFIC FACTOR IMPORTANCE CHART
+                # ==========================================
+
+                st.markdown("#### Factors associated with this district's model results")
+
+                if str(stage_choice).lower().startswith("preg"):
+                    explanation_model = pregnancy_model
+                    explanation_features = [
+                        "mother_age",
+                        "birth_order",
+                        "anc_visits",
+                        "first_anc_month",
+                        "minutes_to_facility",
+                        "walks_to_facility",
+                        "is_urban",
+                        "prev_caesarean",
+                        "smokes",
+                        "wealth",
+                        "mother_edu",
+                        "district_code",
+                    ]
+                    stage_label = "Pregnancy-stage"
+                else:
+                    explanation_model = delivery_model
+                    explanation_features = [
+                        "mother_age",
+                        "birth_order",
+                        "anc_visits",
+                        "first_anc_month",
+                        "minutes_to_facility",
+                        "walks_to_facility",
+                        "is_urban",
+                        "prev_caesarean",
+                        "smokes",
+                        "wealth",
+                        "mother_edu",
+                        "district_code",
+                        "birth_weight",
+                        "is_male",
+                        "caesarean",
+                        "facility_delivery",
+                    ]
+                    stage_label = "Delivery-stage"
+
+                if (
+                    "District" not in model_data.columns
+                    or "neonatal_death" not in model_data.columns
+                ):
+                    st.warning(
+                        "The source data must contain District and "
+                        "neonatal_death columns to calculate this chart."
+                    )
+                else:
+                    district_data = model_data[
+                        model_data["District"].astype(str)
+                        == selected_action_district
+                    ].copy()
+
+                    district_data["neonatal_death"] = pd.to_numeric(
+                        district_data["neonatal_death"],
+                        errors="coerce",
+                    )
+
+                    district_data = district_data[
+                        district_data["neonatal_death"].isin([0, 1])
+                    ]
+
+                    missing_features = [
+                        feature
+                        for feature in explanation_features
+                        if feature not in district_data.columns
+                    ]
+
+                    if missing_features:
+                        st.warning(
+                            "Cannot calculate factor importance. "
+                            "Missing columns: "
+                            + ", ".join(missing_features)
+                        )
+
+                    elif len(district_data) < 20:
+                        st.info(
+                            "There are too few usable records in this "
+                            "district for a reliable exploratory chart."
+                        )
+
+                    else:
+                        X_local = district_data[
+                            explanation_features
+                        ]
+                        y_local = district_data["neonatal_death"].astype(int)
+
+                        try:
+                            with st.spinner(
+                                "Calculating district-specific factor importance..."
+                            ):
+                                result = permutation_importance(
+                                    explanation_model,
+                                    X_local,
+                                    y_local,
+                                    scoring="neg_brier_score",
+                                    n_repeats=5,
+                                    random_state=42,
+                                    n_jobs=1,
+                                )
+
+                            factor_chart_data = pd.DataFrame({
+                                "Factor": explanation_features,
+                                "Importance": result.importances_mean,
+                            })
+
+                            factor_chart_data = (
+                                factor_chart_data
+                                .sort_values("Importance", ascending=False)
+                                .head(10)
+                            )
+
+                            st.caption(
+                                f"{stage_label} model. Factors are ranked "
+                                "by how much shuffling each factor changes "
+                                "the model's Brier score on records from "
+                                "this district. Positive values indicate "
+                                "that shuffling worsened the score."
+                            )
+
+                            factor_chart = (
+                                alt.Chart(factor_chart_data)
+                                .mark_bar()
+                                .encode(
+                                    x=alt.X(
+                                        "Importance:Q",
+                                        title="Importance (change in score)",
+                                    ),
+                                    y=alt.Y(
+                                        "Factor:N",
+                                        sort="-x",
+                                        title=None,
+                                    ),
+                                    tooltip=[
+                                        "Factor",
+                                        alt.Tooltip(
+                                            "Importance:Q",
+                                            format=".4f",
+                                        ),
+                                    ],
+                                )
+                                .properties(height=320)
+                            )
+
+                            st.altair_chart(
+                                factor_chart,
+                                use_container_width=True,
+                            )
+
+                            st.caption(
+                                "This is an exploratory model explanation, "
+                                "not proof that a factor caused neonatal "
+                                "deaths. Results may be unstable when a "
+                                "district has few records or deaths."
+                            )
+
+                        except Exception as e:
+                            st.warning(
+                                "Could not calculate factor importance "
+                                f"for this district: {e}"
+                            )
+
 
                 st.caption(
                     "The dashboard currently generates general actions "
