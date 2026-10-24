@@ -23,6 +23,21 @@ st.set_page_config(
 ## Locate the project folder containing your outputs folder.
 ROOT = Path(__file__).resolve().parents[1]
 
+
+DATA_PATH = ROOT / "data" / "merged_table.csv"
+
+import sys
+
+SRC_PATH = ROOT / "src"
+if str(SRC_PATH) not in sys.path:
+    sys.path.insert(0, str(SRC_PATH))
+
+try:
+    from build_features import build_features
+except ImportError:
+    build_features = None
+
+
 OUTPUTS = ROOT / "outputs"
 MODELS = OUTPUTS / "models"
 
@@ -83,15 +98,28 @@ def load_model(path_string):
     return joblib.load(path_string)
 
 
+
 @st.cache_data
 def load_csv(path_string):
     return pd.read_csv(path_string)
+
+
+@st.cache_data(show_spinner="Loading district explanation data...")
+def load_model_data(path_string):
+    if build_features is None:
+        raise ImportError(
+            "Could not import build_features.py from the src folder."
+        )
+
+    raw_data = pd.read_csv(path_string, low_memory=False)
+    return build_features(raw_data)
 
 
 @st.cache_data
 def load_thresholds(path_string):
     with open(path_string, "r", encoding="utf-8") as f:
         return json.load(f)
+
 
 
 
@@ -195,6 +223,13 @@ try:
     pregnancy_districts = load_csv(str(PREGNANCY_DISTRICT_PATH))
     delivery_districts = load_csv(str(DELIVERY_DISTRICT_PATH))
 
+    # Load the original data and rebuild the features
+model_data = load_model_data(str(DATA_PATH))
+
+# Check that the data loaded correctly
+st.write("Data used for district explanations:", model_data.shape)
+st.write("Available columns:", model_data.columns.tolist())
+
 except Exception as e:
     st.error(f"Could not load required project files: {e}")
     st.stop()
@@ -244,6 +279,8 @@ check_model_features(
 
 pregnancy_threshold = float(thresholds["pregnancy"])
 delivery_threshold = float(thresholds["delivery"])
+
+
 
 
 
