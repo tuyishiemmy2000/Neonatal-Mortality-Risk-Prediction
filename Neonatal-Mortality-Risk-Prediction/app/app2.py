@@ -803,6 +803,147 @@ elif page == "District analysis":
             hide_index=True,
         )
 
+        # ====================================================
+        # DISTRICT ACTION PLANNER
+        # ====================================================
+
+        st.divider()
+        st.subheader("District Action Planner")
+
+        st.write(
+            "Select a district to review its predicted risk category "
+            "and suggested public-health planning priorities."
+        )
+
+        # Suggested actions for each relative risk category.
+        # These are planning suggestions, not clinical instructions.
+        district_actions = {
+            "High": {
+                "priority": "Priority review of services and referral readiness",
+                "actions": [
+                    "Review recent neonatal deaths and identify possible "
+                    "gaps in maternal or newborn care.",
+                    "Assess access to antenatal care and timely referral "
+                    "for complicated pregnancies.",
+                    "Review skilled-delivery coverage and the readiness "
+                    "of facilities to care for small or sick newborns.",
+                    "Review whether postnatal contacts and community "
+                    "follow-up reach mothers and newborns who need them.",
+                ],
+                "indicators": [
+                    "Observed neonatal deaths and births reviewed together",
+                    "Antenatal-care coverage",
+                    "Facility-delivery coverage",
+                    "Timely referral and postnatal follow-up coverage",
+                ],
+            },
+            "Medium": {
+                "priority": "Strengthen prevention and investigate service gaps",
+                "actions": [
+                    "Check whether pregnant women initiate and attend "
+                    "antenatal care according to national guidance.",
+                    "Review barriers to reaching a health facility "
+                    "and completing referrals.",
+                    "Monitor facility-delivery coverage and newborn "
+                    "follow-up after birth.",
+                    "Compare service indicators with those of lower-risk "
+                    "districts to identify improvement opportunities.",
+                ],
+                "indicators": [
+                    "Early antenatal-care attendance",
+                    "Antenatal-care coverage",
+                    "Facility-delivery coverage",
+                    "Postnatal follow-up coverage",
+                ],
+            },
+            "Low": {
+                "priority": "Maintain essential services and monitor changes",
+                "actions": [
+                    "Maintain access to quality antenatal and delivery care.",
+                    "Continue routine newborn assessment and postnatal care.",
+                    "Monitor observed neonatal deaths and predicted risk "
+                    "for changes over time.",
+                    "Share effective practices after confirming them "
+                    "with local service data.",
+                ],
+                "indicators": [
+                    "Observed neonatal deaths per 1,000 live births",
+                    "Antenatal-care coverage",
+                    "Facility-delivery coverage",
+                    "Postnatal follow-up coverage",
+                ],
+            },
+        }
+
+        # Select a district from the currently filtered table.
+        available_districts = sorted(
+            filtered["District"].dropna().astype(str).unique()
+        )
+
+        if available_districts:
+            selected_action_district = st.selectbox(
+                "Choose a district for action planning",
+                available_districts,
+                key="district_action_planner",
+            )
+
+            selected_row = filtered[
+                filtered["District"].astype(str)
+                == selected_action_district
+            ].iloc[0]
+
+            category = str(selected_row["level"]).title()
+            mean_risk = float(selected_row["mean_risk"])
+            difference = float(selected_row["diff"])
+
+            if category not in district_actions:
+                st.warning(
+                    "This district has an unrecognized risk category. "
+                    "Check the level column in the district CSV."
+                )
+            else:
+                recommendations = district_actions[category]
+
+                st.markdown(f"### {selected_action_district}")
+
+                m1, m2, m3 = st.columns(3)
+
+                m1.metric(
+                    "Relative risk category",
+                    category,
+                )
+                m2.metric(
+                    "Mean predicted risk",
+                    f"{mean_risk:.2%}",
+                )
+                m3.metric(
+                    "Difference from national mean",
+                    f"{difference:+.2f} percentage points",
+                )
+
+                st.info(
+                    "Suggested planning priority: "
+                    + recommendations["priority"]
+                )
+
+                st.markdown("#### Suggested actions")
+
+                for action in recommendations["actions"]:
+                    st.markdown(f"- {action}")
+
+                st.markdown("#### Indicators to monitor")
+
+                for indicator in recommendations["indicators"]:
+                    st.markdown(f"- {indicator}")
+
+                st.caption(
+                    "The dashboard currently generates general actions "
+                    "from the district category. It does not establish "
+                    "which factors caused the district's predicted risk. "
+                    "Confirm priorities using current district health "
+                    "service data and official guidance."
+                )
+
         st.download_button(
             "Download displayed district data",
             data=filtered.to_csv(index=False).encode("utf-8"),
