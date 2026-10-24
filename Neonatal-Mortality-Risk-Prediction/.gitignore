@@ -6,7 +6,10 @@ __pycache__/
 Thumbs.db
 
 # DHS data must not be shared publicly
+
 data/*.csv
+!data/merged_table.csv
+
 data/*.dta
 *.dta
 *.xlsx
