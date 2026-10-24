@@ -215,30 +215,34 @@ if missing_files:
     )
     st.stop()
 
+
 try:
+    # Load trained models
     pregnancy_model = load_model(str(PREGNANCY_MODEL_PATH))
     delivery_model = load_model(str(DELIVERY_MODEL_PATH))
+
+    # Load thresholds and national summary
     thresholds = load_thresholds(str(THRESHOLDS_PATH))
     national = load_csv(str(NATIONAL_PATH))
+
+    # Load district risk results
     pregnancy_districts = load_csv(str(PREGNANCY_DISTRICT_PATH))
     delivery_districts = load_csv(str(DELIVERY_DISTRICT_PATH))
 
-    # Load the original data and rebuild the features
-model_data = load_model_data(str(DATA_PATH))
-
-# Check that the data loaded correctly
-st.write("Data used for district explanations:", model_data.shape)
-st.write("Available columns:", model_data.columns.tolist())
+    # Load original data for district explanations
+    model_data = load_model_data(str(DATA_PATH))
 
 except Exception as e:
     st.error(f"Could not load required project files: {e}")
     st.stop()
 
-# District mapping goes AFTER the try/except block
+
+# District mapping
 district_names = sorted(
     set(pregnancy_districts["District"].dropna().astype(str))
     | set(delivery_districts["District"].dropna().astype(str))
 )
+
 
 district_to_code = {
     name: code for code, name in enumerate(district_names)
