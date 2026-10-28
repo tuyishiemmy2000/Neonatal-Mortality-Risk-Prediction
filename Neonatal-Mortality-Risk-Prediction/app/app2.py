@@ -16,7 +16,7 @@ import pandas as pd
 import streamlit as st
 import altair as alt
 from sklearn.inspection import permutation_importance
-
+import base64
 
 import json
 from pathlib import Path
@@ -26,11 +26,93 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+import streamlit as st
+import base64
+from pathlib import Path
+
+# 1. Configure the dashboard
+import streamlit as st
+import base64
+from pathlib import Path
+
+# --------------------------------------------------
+# 1. PAGE CONFIGURATION
+# Keep this before other Streamlit commands
+# --------------------------------------------------
 st.set_page_config(
     page_title="Neonatal Mortality Risk Dashboard",
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# --------------------------------------------------
+# 2. LOAD BACKGROUND IMAGE
+# The image must be in the same folder as app2.py
+# --------------------------------------------------
+BACKGROUND_PATH = Path(__file__).resolve().parent / "background.jpg.png"
+
+if BACKGROUND_PATH.is_file():
+
+    encoded_image = base64.b64encode(
+        BACKGROUND_PATH.read_bytes()
+    ).decode("utf-8")
+
+    # --------------------------------------------------
+    # 3. BACKGROUND AND READABILITY STYLES
+    # --------------------------------------------------
+    st.markdown(
+        f"""
+        <style>
+
+        /* Background image with a soft white overlay */
+        .stApp {{
+            background-image:
+                linear-gradient(
+                    rgba(255, 255, 255, 0.90),
+                    rgba(255, 255, 255, 0.94)
+                ),
+                url("data:image/png;base64,{encoded_image}");
+
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+
+        /* Improve readability of headings and text */
+        h1, h2, h3, p, label {{
+            color: #183536;
+        }}
+
+        /* Give bordered dashboard containers a clean surface */
+        div[data-testid="stVerticalBlockBorderWrapper"] {{
+            background-color: rgba(255, 255, 255, 0.92);
+            border-radius: 12px;
+        }}
+
+        /* Make metric cards easier to read */
+        div[data-testid="stMetric"] {{
+            background-color: rgba(255, 255, 255, 0.96);
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #E1E8E7;
+        }}
+
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+else:
+    st.warning(f"Background image not found: {BACKGROUND_PATH}")
+
+
+# --------------------------------------------------
+# 4. YOUR EXISTING DASHBOARD CODE STARTS BELOW
+# Keep your current functions, navigation, charts,
+# prediction forms, and other pages below this line.
+# --------------------------------------------------
+
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 # ============================================================
@@ -71,7 +153,9 @@ COMPARISON_PATH = OUTPUTS / "model_comparison.csv"
 
 st.set_page_config(
     page_title="Rwanda Neonatal Mortality Risk Dashboard",
-    page_icon="👶",
+    
+    page_icon=r"C:\Users\user\Downloads\Neonatal Mortality Project Report.png",
+
     layout="wide",
 )
 
