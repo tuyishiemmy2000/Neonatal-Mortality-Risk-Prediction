@@ -274,7 +274,7 @@ Neonatal-Mortality-Risk-Prediction/
 │
 ├── requirements.txt
 ├── .gitignore
-└── README.md
+└── NOTEPAD.README.md
 ```
 
 The exact output filenames may vary with the current training-script configuration. The tree above describes the intended organization; only files actually generated or included in the repository will be available.
